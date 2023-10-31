@@ -9,11 +9,11 @@
 #include "rtweekend.hpp"
 #include "sphere.hpp"
 
-std::vector<std::vector<Color>> render(const Hittable& world) {
+std::vector<std::vector<Color>> render(const Hittable& world, const int samples_per_pixel) {
     Camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 1200;
-    cam.samples_per_pixel = 50;
+    cam.samples_per_pixel = samples_per_pixel;
     cam.max_depth = 50;
 
     cam.vfov = 20;
@@ -72,10 +72,11 @@ int main(int, char**) {
     world.add(make_shared<Sphere>(Point3d(4, 1, 0), 1.0, material3));
 
     int NUM_THREADS = 4;
+    int SAMPLES_PER_PIXEL = 5;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        futures[i] = std::async(std::launch::async, render, world);
+        futures[i] = std::async(std::launch::async, render, world, SAMPLES_PER_PIXEL);
     }
 
     std::vector<std::vector<std::vector<Color>>> results(NUM_THREADS);
@@ -84,18 +85,18 @@ int main(int, char**) {
         results[i] = futures[i].get();
     }
 
-    auto image_width = results[0].size();
-    auto image_height = results[0][0].size();
+    auto image_width = results[0][0].size();
+    auto image_height = results[0].size();
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-    for (int i = 0; i < image_width; ++i) {
-        for (int j = 0; j < image_height; ++j) {
+    for (int i = 0; i < image_height; ++i) {
+        for (int j = 0; j < image_width; ++j) {
             Color pixel_color(0, 0, 0);
             for (int k = 0; k < NUM_THREADS; ++k) {
                 pixel_color += results[k][i][j];
             }
-            write_color(std::cout, pixel_color, NUM_THREADS);
+            write_color(std::cout, pixel_color, NUM_THREADS * SAMPLES_PER_PIXEL);
         }
     }
 }
