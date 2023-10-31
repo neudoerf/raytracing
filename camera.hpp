@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <vector>
+
 #include "color.hpp"
 #include "hittable.hpp"
 #include "material.hpp"
@@ -21,10 +23,13 @@ public:
     double defocus_angle = 0;
     double focus_dist = 10;
 
-    void render(const Hittable& world) {
+    std::vector<std::vector<Color>> render(const Hittable& world) {
         initialize();
 
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+        std::vector<std::vector<Color>> output(image_height,
+                                               std::vector<Color>(image_width, Color()));
+
+        // std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
         for (int j = 0; j < image_height; ++j) {
             std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
@@ -35,11 +40,13 @@ public:
                     pixel_color += ray_color(r, max_depth, world);
                 }
 
-                write_color(std::cout, pixel_color, samples_per_pixel);
+                output[j][i] = pixel_color;
             }
         }
 
         std::clog << "\rDone.                 \n";
+
+        return output;
     }
 
 private:

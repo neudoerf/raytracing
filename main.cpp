@@ -1,4 +1,6 @@
+#include <future>
 #include <iostream>
+#include <thread>
 
 #include "camera.hpp"
 #include "color.hpp"
@@ -6,6 +8,24 @@
 #include "material.hpp"
 #include "rtweekend.hpp"
 #include "sphere.hpp"
+
+std::vector<std::vector<Color>> render(const Hittable& world) {
+    Camera cam;
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 50;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(13, 2, 3);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Point3d(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+
+    return cam.render(world);
+}
 
 int main(int, char**) {
     // world
@@ -51,19 +71,31 @@ int main(int, char**) {
     auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<Sphere>(Point3d(4, 1, 0), 1.0, material3));
 
-    Camera cam;
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 500;
-    cam.max_depth = 50;
+    int NUM_THREADS = 4;
+    std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
-    cam.vfov = 20;
-    cam.look_from = Point3d(13, 2, 3);
-    cam.look_at = Point3d(0, 0, 0);
-    cam.v_up = Point3d(0, 1, 0);
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        futures[i] = std::async(std::launch::async, render, world);
+    }
 
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
+    std::vector<std::vector<std::vector<Color>>> results(NUM_THREADS);
 
-    cam.render(world);
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        results[i] = futures[i].get();
+    }
+
+    auto image_width = results[0].size();
+    auto image_height = results[0][0].size();
+
+    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+    for (int i = 0; i < image_width; ++i) {
+        for (int j = 0; j < image_height; ++j) {
+            Color pixel_color(0, 0, 0);
+            for (int k = 0; k < NUM_THREADS; ++k) {
+                pixel_color += results[k][i][j];
+            }
+            write_color(std::cout, pixel_color, NUM_THREADS);
+        }
+    }
 }
