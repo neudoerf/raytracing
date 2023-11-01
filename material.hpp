@@ -4,6 +4,7 @@
 #include "color.hpp"
 #include "hittable_list.hpp"
 #include "rtweekend.hpp"
+#include "texture.hpp"
 
 class HitRecord;
 
@@ -17,7 +18,9 @@ public:
 
 class Lambertian : public Material {
 public:
-    Lambertian(const Color& a) : albedo(a) {}
+    Lambertian(const Color& a) : albedo(make_shared<SolidColor>(a)) {}
+
+    Lambertian(shared_ptr<Texture> a) : albedo(a) {}
 
     bool scatter(const Ray& r_in, const HitRecord& rec, Color& attenuation,
                  Ray& scattered) const override {
@@ -28,12 +31,12 @@ public:
             scatter_direction = rec.normal;
         }
         scattered = Ray(rec.p, scatter_direction, r_in.time());
-        attenuation = albedo;
+        attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
 private:
-    Color albedo;
+    shared_ptr<Texture> albedo;
 };
 
 class Metal : public Material {

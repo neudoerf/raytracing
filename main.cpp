@@ -9,6 +9,7 @@
 #include "material.hpp"
 #include "rtweekend.hpp"
 #include "sphere.hpp"
+#include "texture.hpp"
 
 std::vector<std::vector<Color>> render(const Hittable& world, const int samples_per_pixel) {
     Camera cam;
@@ -28,12 +29,12 @@ std::vector<std::vector<Color>> render(const Hittable& world, const int samples_
     return cam.render(world);
 }
 
-int main(int, char**) {
+HittableList random_spheres() {
     // world
     HittableList world;
 
-    auto mat_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, mat_ground));
+    auto checker = make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+    world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, make_shared<Lambertian>(checker)));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -74,6 +75,44 @@ int main(int, char**) {
     world.add(make_shared<Sphere>(Point3d(4, 1, 0), 1.0, material3));
 
     world = HittableList(std::make_shared<BvhNode>(world));
+
+    return world;
+}
+
+HittableList two_spheres() {
+    HittableList world;
+
+    auto checker = make_shared<CheckerTexture>(0.8, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+
+    world.add(make_shared<Sphere>(Point3d(0, -10, 0), 10, make_shared<Lambertian>(checker)));
+    world.add(make_shared<Sphere>(Point3d(0, 10, 0), 10, make_shared<Lambertian>(checker)));
+
+    return world;
+}
+
+HittableList earth() {
+    auto earth_texture = make_shared<ImageTexture>("earthmap.jpg");
+    auto earth_surface = make_shared<Lambertian>(earth_texture);
+    auto globe = make_shared<Sphere>(Point3d(0, 0, 0), 2, earth_surface);
+
+    return HittableList(globe);
+}
+
+int main(int, char**) {
+    HittableList world;
+    int SCENE = 3;
+
+    switch (SCENE) {
+        case 1:
+            world = random_spheres();
+            break;
+        case 2:
+            world = two_spheres();
+            break;
+        case 3:
+            world = earth();
+            break;
+    }
 
     int NUM_THREADS = 4;
     int SAMPLES_PER_PIXEL = 25;
