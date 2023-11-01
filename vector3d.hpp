@@ -20,6 +20,10 @@ public:
 
     Vector3d operator-() const { return Vector3d(-e[0], -e[1], -e[2]); }
 
+    double operator[](int i) const { return e[i]; }
+
+    double& operator[](int i) { return e[i]; }
+
     Vector3d& operator+=(const Vector3d& v) {
         e[0] += v.x();
         e[1] += v.y();

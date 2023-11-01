@@ -7,10 +7,18 @@
 class Sphere : public Hittable {
 public:
     Sphere(Point3d _center, double _radius, shared_ptr<Material> _material)
-        : center1(_center), radius(_radius), mat(_material), is_moving(false) {}
+        : center1(_center), radius(_radius), mat(_material), is_moving(false) {
+        auto rvec = Vector3d(radius, radius, radius);
+        bbox = Aabb(center1 + rvec, center1 - rvec);
+    }
 
     Sphere(Point3d _center1, Point3d _center2, double _radius, shared_ptr<Material> _material)
         : center1(_center1), radius(_radius), mat(_material), is_moving(true) {
+        auto rvec = Vector3d(radius, radius, radius);
+        Aabb box1(_center1 - rvec, _center1 + rvec);
+        Aabb box2(_center2 - rvec, _center2 + rvec);
+        bbox = Aabb(box1, box2);
+
         center_vec = _center2 - _center1;
     }
 
@@ -45,12 +53,15 @@ public:
         return true;
     }
 
+    Aabb bounding_box() const override { return bbox; }
+
 private:
     Point3d center1;
     double radius;
     shared_ptr<Material> mat;
     bool is_moving;
     Vector3d center_vec;
+    Aabb bbox;
 
     Point3d sphere_center(double time) const { return center1 + time * center_vec; }
 };

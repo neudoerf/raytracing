@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "aabb.hpp"
 #include "hittable.hpp"
 
 using std::make_shared;
@@ -19,7 +20,10 @@ public:
 
     void clear() { objects.clear(); }
 
-    void add(shared_ptr<Hittable> object) { objects.push_back(object); }
+    void add(shared_ptr<Hittable> object) {
+        objects.push_back(object);
+        bbox = Aabb(bbox, object->bounding_box());
+    }
 
     bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override {
         HitRecord temp_rec;
@@ -36,6 +40,11 @@ public:
 
         return hit_anything;
     }
+
+    Aabb bounding_box() const override { return bbox; }
+
+private:
+    Aabb bbox;
 };
 
 #endif  // HITTABLE_LIST_H

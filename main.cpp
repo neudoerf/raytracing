@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 
+#include "bvh.hpp"
 #include "camera.hpp"
 #include "color.hpp"
 #include "hittable_list.hpp"
@@ -71,6 +72,8 @@ int main(int, char**) {
 
     auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<Sphere>(Point3d(4, 1, 0), 1.0, material3));
+
+    world = HittableList(std::make_shared<BvhNode>(world));
 
     int NUM_THREADS = 4;
     int SAMPLES_PER_PIXEL = 25;
