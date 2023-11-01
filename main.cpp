@@ -12,7 +12,7 @@
 std::vector<std::vector<Color>> render(const Hittable& world, const int samples_per_pixel) {
     Camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
+    cam.image_width = 400;
     cam.samples_per_pixel = samples_per_pixel;
     cam.max_depth = 50;
 
@@ -46,7 +46,8 @@ int main(int, char**) {
                     // diffuse
                     auto albedo = Color::random() * Color::random();
                     mat_sphere = make_shared<Lambertian>(albedo);
-                    world.add(make_shared<Sphere>(center, 0.2, mat_sphere));
+                    auto center2 = center + Vector3d(0, random_double(0, 0.5), 0);
+                    world.add(make_shared<Sphere>(center, center2, 0.2, mat_sphere));
                 } else if (choose_mat < 0.95) {
                     // metal
                     auto albedo = Color::random(0.5, 1);
@@ -72,7 +73,7 @@ int main(int, char**) {
     world.add(make_shared<Sphere>(Point3d(4, 1, 0), 1.0, material3));
 
     int NUM_THREADS = 4;
-    int SAMPLES_PER_PIXEL = 5;
+    int SAMPLES_PER_PIXEL = 25;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
     for (int i = 0; i < NUM_THREADS; ++i) {

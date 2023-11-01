@@ -121,8 +121,9 @@ private:
 
         auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
+        double time = random_double();
 
-        return Ray(ray_origin, ray_direction);
+        return Ray(ray_origin, ray_direction, time);
     }
 
     Vector3d pixel_sample_square() const {
