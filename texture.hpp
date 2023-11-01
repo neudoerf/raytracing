@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include "color.hpp"
+#include "perlin.hpp"
 #include "rtw_stb_image.hpp"
 #include "rtweekend.hpp"
 
@@ -73,6 +74,22 @@ public:
 
 private:
     RtwImage image;
+};
+
+class NoiseTexture : public Texture {
+public:
+    NoiseTexture() : scale(1) {}
+
+    NoiseTexture(double sc) : scale(sc) {}
+
+    Color value(double u, double v, const Point3d& p) const override {
+        auto s = scale * p;
+        return Color(1, 1, 1) * 0.5 * (1 + sin(s.z() + 10 * noise.turb(s)));
+    }
+
+private:
+    Perlin noise;
+    double scale;
 };
 
 #endif  // TEXTURE_H

@@ -98,9 +98,19 @@ HittableList earth() {
     return HittableList(globe);
 }
 
+HittableList two_perlin_spheres() {
+    HittableList world;
+
+    auto pertext = make_shared<NoiseTexture>(4);
+    world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, make_shared<Lambertian>(pertext)));
+    world.add(make_shared<Sphere>(Point3d(0, 2, 0), 2, make_shared<Lambertian>(pertext)));
+
+    return world;
+}
+
 int main(int, char**) {
     HittableList world;
-    int SCENE = 3;
+    int SCENE = 4;
 
     switch (SCENE) {
         case 1:
@@ -111,6 +121,9 @@ int main(int, char**) {
             break;
         case 3:
             world = earth();
+            break;
+        case 4:
+            world = two_perlin_spheres();
             break;
     }
 
