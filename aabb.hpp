@@ -23,6 +23,15 @@ public:
         z = Interval(box1.z, box2.z);
     }
 
+    Aabb pad() const {
+        double delta = 0.0001;
+        Interval new_x = (x.size() >= delta) ? x : x.expand(delta);
+        Interval new_y = (y.size() >= delta) ? y : y.expand(delta);
+        Interval new_z = (z.size() >= delta) ? z : z.expand(delta);
+
+        return Aabb(new_x, new_y, new_z);
+    }
+
     const Interval& axis(int n) const {
         if (n == 1) {
             return y;

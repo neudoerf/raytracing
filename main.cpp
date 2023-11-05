@@ -7,32 +7,16 @@
 #include "color.hpp"
 #include "hittable_list.hpp"
 #include "material.hpp"
+#include "quad.hpp"
 #include "rtweekend.hpp"
 #include "sphere.hpp"
 #include "texture.hpp"
 
-std::vector<std::vector<Color>> render(const Hittable& world, const int samples_per_pixel) {
-    Camera cam;
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = samples_per_pixel;
-    cam.max_depth = 50;
-
-    cam.vfov = 20;
-    cam.look_from = Point3d(13, 2, 3);
-    cam.look_at = Point3d(0, 0, 0);
-    cam.v_up = Point3d(0, 1, 0);
-
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
-
+std::vector<std::vector<Color>> render(const Hittable& world, Camera cam) {
     return cam.render(world);
 }
 
-HittableList random_spheres() {
-    // world
-    HittableList world;
-
+void random_spheres(HittableList& world, Camera& cam) {
     auto checker = make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
     world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, make_shared<Lambertian>(checker)));
 
@@ -76,63 +60,141 @@ HittableList random_spheres() {
 
     world = HittableList(std::make_shared<BvhNode>(world));
 
-    return world;
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(13, 2, 3);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Point3d(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
 }
 
-HittableList two_spheres() {
-    HittableList world;
-
+void two_spheres(HittableList& world, Camera& cam) {
     auto checker = make_shared<CheckerTexture>(0.8, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
 
     world.add(make_shared<Sphere>(Point3d(0, -10, 0), 10, make_shared<Lambertian>(checker)));
     world.add(make_shared<Sphere>(Point3d(0, 10, 0), 10, make_shared<Lambertian>(checker)));
 
-    return world;
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(13, 2, 3);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Point3d(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
 }
 
-HittableList earth() {
+void earth(HittableList& world, Camera& cam) {
     auto earth_texture = make_shared<ImageTexture>("earthmap.jpg");
     auto earth_surface = make_shared<Lambertian>(earth_texture);
     auto globe = make_shared<Sphere>(Point3d(0, 0, 0), 2, earth_surface);
 
-    return HittableList(globe);
+    world.add(globe);
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(13, 2, 3);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Point3d(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
 }
 
-HittableList two_perlin_spheres() {
-    HittableList world;
-
+void two_perlin_spheres(HittableList& world, Camera& cam) {
     auto pertext = make_shared<NoiseTexture>(4);
     world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, make_shared<Lambertian>(pertext)));
     world.add(make_shared<Sphere>(Point3d(0, 2, 0), 2, make_shared<Lambertian>(pertext)));
 
-    return world;
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(13, 2, 3);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Point3d(0, 1, 0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist = 10.0;
+}
+
+void quads(HittableList& world, Camera& cam) {
+    auto left_red = make_shared<Lambertian>(Color(1, 0.2, 0.2));
+    auto back_green = make_shared<Lambertian>(Color(0.2, 1, 0.2));
+    auto right_blue = make_shared<Lambertian>(Color(0.2, 0.2, 1));
+    auto upper_orange = make_shared<Lambertian>(Color(1, 0.5, 0));
+    auto lower_teal = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+    world.add(
+        make_shared<Quad>(Point3d(-3, -2, 5), Vector3d(0, 0, -4), Vector3d(0, 4, 0), left_red));
+    world.add(
+        make_shared<Quad>(Point3d(-2, -2, 0), Vector3d(4, 0, 0), Vector3d(0, 4, 0), back_green));
+    world.add(
+        make_shared<Quad>(Point3d(3, -2, 1), Vector3d(0, 0, 4), Vector3d(0, 4, 0), right_blue));
+    world.add(
+        make_shared<Quad>(Point3d(-2, 3, 1), Vector3d(4, 0, 0), Vector3d(0, 0, 4), upper_orange));
+    world.add(
+        make_shared<Quad>(Point3d(-2, -3, 5), Vector3d(4, 0, 0), Vector3d(0, 0, -4), lower_teal));
+
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 80;
+    cam.look_from = Point3d(0, 0, 9);
+    cam.look_at = Point3d(0, 0, 0);
+    cam.v_up = Vector3d(0, 1, 0);
+
+    cam.defocus_angle = 0;
 }
 
 int main(int, char**) {
     HittableList world;
-    int SCENE = 4;
+    Camera cam;
+    int SCENE = 5;
 
     switch (SCENE) {
         case 1:
-            world = random_spheres();
+            random_spheres(world, cam);
             break;
         case 2:
-            world = two_spheres();
+            two_spheres(world, cam);
             break;
         case 3:
-            world = earth();
+            earth(world, cam);
             break;
         case 4:
-            world = two_perlin_spheres();
+            two_perlin_spheres(world, cam);
+            break;
+        case 5:
+            quads(world, cam);
             break;
     }
 
     int NUM_THREADS = 4;
     int SAMPLES_PER_PIXEL = 25;
+    cam.samples_per_pixel = SAMPLES_PER_PIXEL;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
     for (int i = 0; i < NUM_THREADS; ++i) {
-        futures[i] = std::async(std::launch::async, render, world, SAMPLES_PER_PIXEL);
+        futures[i] = std::async(std::launch::async, render, world, cam);
     }
 
     std::vector<std::vector<std::vector<Color>>> results(NUM_THREADS);

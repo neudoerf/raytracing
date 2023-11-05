@@ -20,6 +20,13 @@ public:
         return x;
     }
 
+    double size() const { return max - min; }
+
+    Interval expand(const double delta) const {
+        double padding = delta / 2;
+        return Interval(min - padding, max + padding);
+    }
+
     static const Interval empty, universe;
 };
 
