@@ -67,4 +67,10 @@ public:
     }
 };
 
+Aabb operator+(const Aabb& bbox, const Vector3d& offset) {
+    return Aabb(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
+}
+
+Aabb operator+(const Vector3d& offset, const Aabb& bbox) { return bbox + offset; }
+
 #endif  // AABB_H

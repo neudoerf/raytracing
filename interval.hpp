@@ -33,4 +33,10 @@ public:
 const static Interval empty(+infinity, -infinity);
 const static Interval universe(-infinity, +infinity);
 
+Interval operator+(const Interval& ival, double offset) {
+    return Interval(ival.min + offset, ival.max + offset);
+}
+
+Interval operator+(double offset, const Interval& ival) { return ival + offset; }
+
 #endif  // INTERVAL_H

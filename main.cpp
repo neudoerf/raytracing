@@ -210,8 +210,15 @@ void cornell_box(HittableList& world, Camera& cam) {
     world.add(
         make_shared<Quad>(Point3d(0, 0, 555), Vector3d(555, 0, 0), Vector3d(0, 555, 0), white));
 
-    world.add(box(Point3d(130, 0, 65), Point3d(295, 165, 230), white));
-    world.add(box(Point3d(265, 0, 295), Point3d(430, 330, 460), white));
+    shared_ptr<Hittable> box1 = box(Point3d(0, 0, 0), Point3d(165, 330, 165), white);
+    box1 = make_shared<RotateY>(box1, 15);
+    box1 = make_shared<Translate>(box1, Vector3d(265, 0, 295));
+    world.add(box1);
+
+    shared_ptr<Hittable> box2 = box(Point3d(0, 0, 0), Point3d(165, 165, 165), white);
+    box2 = make_shared<RotateY>(box2, -18);
+    box2 = make_shared<Translate>(box2, Vector3d(130, 0, 65));
+    world.add(box2);
 
     cam.aspect_ratio = 1.0;
     cam.image_width = 600;
