@@ -193,10 +193,44 @@ void simple_light(HittableList& world, Camera& cam) {
     cam.defocus_angle = 0;
 }
 
+void cornell_box(HittableList& world, Camera& cam) {
+    auto red = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(Color(.12, .45, .15));
+    auto light = make_shared<DiffuseLight>(Color(15, 15, 15));
+
+    world.add(
+        make_shared<Quad>(Point3d(555, 0, 0), Vector3d(0, 555, 0), Vector3d(0, 0, 555), green));
+    world.add(make_shared<Quad>(Point3d(0, 0, 0), Vector3d(0, 555, 0), Vector3d(0, 0, 555), red));
+    world.add(make_shared<Quad>(Point3d(343, 554, 332), Vector3d(-130, 0, 0), Vector3d(0, 0, -105),
+                                light));
+    world.add(make_shared<Quad>(Point3d(0, 0, 0), Vector3d(555, 0, 0), Vector3d(0, 0, 555), white));
+    world.add(make_shared<Quad>(Point3d(555, 555, 555), Vector3d(-555, 0, 0), Vector3d(0, 0, -555),
+                                white));
+    world.add(
+        make_shared<Quad>(Point3d(0, 0, 555), Vector3d(555, 0, 0), Vector3d(0, 555, 0), white));
+
+    world.add(box(Point3d(130, 0, 65), Point3d(295, 165, 230), white));
+    world.add(box(Point3d(265, 0, 295), Point3d(430, 330, 460), white));
+
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 600;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.look_from = Point3d(278, 278, -800);
+    cam.look_at = Point3d(278, 278, 0);
+    cam.v_up = Vector3d(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main(int, char**) {
     HittableList world;
     Camera cam;
-    int SCENE = 6;
+    int SCENE = 7;
 
     switch (SCENE) {
         case 1:
@@ -217,10 +251,13 @@ int main(int, char**) {
         case 6:
             simple_light(world, cam);
             break;
+        case 7:
+            cornell_box(world, cam);
+            break;
     }
 
     int NUM_THREADS = 4;
-    int SAMPLES_PER_PIXEL = 100;
+    int SAMPLES_PER_PIXEL = 25;
     cam.samples_per_pixel = SAMPLES_PER_PIXEL;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 

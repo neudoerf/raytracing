@@ -69,4 +69,24 @@ private:
     Vector3d w;
 };
 
+inline shared_ptr<HittableList> box(const Point3d& a, const Point3d& b, shared_ptr<Material> mat) {
+    auto sides = make_shared<HittableList>();
+
+    auto min = Point3d(fmin(a.x(), b.x()), fmin(a.y(), b.y()), fmin(a.z(), b.z()));
+    auto max = Point3d(fmax(a.x(), b.x()), fmax(a.y(), b.y()), fmax(a.z(), b.z()));
+
+    auto dx = Vector3d(max.x() - min.x(), 0, 0);
+    auto dy = Vector3d(0, max.y() - min.y(), 0);
+    auto dz = Vector3d(0, 0, max.z() - min.z());
+
+    sides->add(make_shared<Quad>(Point3d(min.x(), min.y(), max.z()), dx, dy, mat));
+    sides->add(make_shared<Quad>(Point3d(max.x(), min.y(), max.z()), -dz, dy, mat));
+    sides->add(make_shared<Quad>(Point3d(max.x(), min.y(), min.z()), -dx, dy, mat));
+    sides->add(make_shared<Quad>(Point3d(min.x(), min.y(), min.z()), dz, dy, mat));
+    sides->add(make_shared<Quad>(Point3d(min.x(), max.y(), max.z()), dx, -dz, mat));
+    sides->add(make_shared<Quad>(Point3d(min.x(), min.y(), min.z()), dx, dz, mat));
+
+    return sides;
+}
+
 #endif  // QUAD_H
