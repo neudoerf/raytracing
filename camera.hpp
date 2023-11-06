@@ -14,6 +14,7 @@ public:
     int image_width = 100;
     int samples_per_pixel = 10;
     int max_depth = 10;
+    Color background;
 
     double vfov = 90;
     Point3d look_from = Point3d(0, 0, -1);
@@ -101,18 +102,21 @@ private:
             return Color(0, 0, 0);
         }
 
-        if (world.hit(r, Interval(0.001, infinity), rec)) {
-            Ray scattered;
-            Color attenuation;
-            if (rec.mat->scatter(r, rec, attenuation, scattered)) {
-                return attenuation * ray_color(scattered, depth - 1, world);
-            }
-            return Color(0, 0, 0);
+        if (!world.hit(r, Interval(0.001, infinity), rec)) {
+            return background;
         }
 
-        Vector3d unit_direction = unit_vector(r.direction());
-        auto a = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0 - a) * Color(1, 1, 1) + a * Color(0.5, 0.7, 1);
+        Ray scattered;
+        Color attenuation;
+        Color from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
+        if (!rec.mat->scatter(r, rec, attenuation, scattered)) {
+            return from_emission;
+        }
+
+        Color from_scatter = attenuation * ray_color(scattered, depth - 1, world);
+
+        return from_emission + from_scatter;
     }
 
     Ray get_ray(int i, int j) const {

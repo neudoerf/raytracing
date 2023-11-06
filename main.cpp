@@ -64,6 +64,7 @@ void random_spheres(HittableList& world, Camera& cam) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color(0.7, 0.8, 1);
 
     cam.vfov = 20;
     cam.look_from = Point3d(13, 2, 3);
@@ -84,6 +85,7 @@ void two_spheres(HittableList& world, Camera& cam) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color(0.7, 0.8, 1);
 
     cam.vfov = 20;
     cam.look_from = Point3d(13, 2, 3);
@@ -105,6 +107,7 @@ void earth(HittableList& world, Camera& cam) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color(0.7, 0.8, 1);
 
     cam.vfov = 20;
     cam.look_from = Point3d(13, 2, 3);
@@ -124,6 +127,7 @@ void two_perlin_spheres(HittableList& world, Camera& cam) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color(0.7, 0.8, 1);
 
     cam.vfov = 20;
     cam.look_from = Point3d(13, 2, 3);
@@ -156,6 +160,7 @@ void quads(HittableList& world, Camera& cam) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color(0.7, 0.8, 1);
 
     cam.vfov = 80;
     cam.look_from = Point3d(0, 0, 9);
@@ -165,10 +170,33 @@ void quads(HittableList& world, Camera& cam) {
     cam.defocus_angle = 0;
 }
 
+void simple_light(HittableList& world, Camera& cam) {
+    auto pertext = make_shared<NoiseTexture>(4);
+    world.add(make_shared<Sphere>(Point3d(0, -1000, 0), 1000, make_shared<Lambertian>(pertext)));
+    world.add(make_shared<Sphere>(Point3d(0, 2, 0), 2, make_shared<Lambertian>(pertext)));
+
+    auto difflight = make_shared<DiffuseLight>(Color(4, 4, 4));
+    world.add(
+        make_shared<Quad>(Point3d(3, 1, -2), Vector3d(2, 0, 0), Vector3d(0, 2, 0), difflight));
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 20;
+    cam.look_from = Point3d(26, 3, 6);
+    cam.look_at = Point3d(0, 2, 0);
+    cam.v_up = Vector3d(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main(int, char**) {
     HittableList world;
     Camera cam;
-    int SCENE = 5;
+    int SCENE = 6;
 
     switch (SCENE) {
         case 1:
@@ -186,10 +214,13 @@ int main(int, char**) {
         case 5:
             quads(world, cam);
             break;
+        case 6:
+            simple_light(world, cam);
+            break;
     }
 
     int NUM_THREADS = 4;
-    int SAMPLES_PER_PIXEL = 25;
+    int SAMPLES_PER_PIXEL = 100;
     cam.samples_per_pixel = SAMPLES_PER_PIXEL;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
