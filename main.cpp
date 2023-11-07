@@ -5,6 +5,7 @@
 #include "bvh.hpp"
 #include "camera.hpp"
 #include "color.hpp"
+#include "constant_medium.hpp"
 #include "hittable_list.hpp"
 #include "material.hpp"
 #include "quad.hpp"
@@ -234,10 +235,52 @@ void cornell_box(HittableList& world, Camera& cam) {
     cam.defocus_angle = 0;
 }
 
+void cornell_smoke(HittableList& world, Camera& cam) {
+    auto red = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(Color(.12, .45, .15));
+    auto light = make_shared<DiffuseLight>(Color(7, 7, 7));
+
+    world.add(
+        make_shared<Quad>(Point3d(555, 0, 0), Vector3d(0, 555, 0), Vector3d(0, 0, 555), green));
+    world.add(make_shared<Quad>(Point3d(0, 0, 0), Vector3d(0, 555, 0), Vector3d(0, 0, 555), red));
+    world.add(
+        make_shared<Quad>(Point3d(113, 554, 127), Vector3d(330, 0, 0), Vector3d(0, 0, 305), light));
+    world.add(make_shared<Quad>(Point3d(0, 0, 0), Vector3d(555, 0, 0), Vector3d(0, 0, 555), white));
+    world.add(make_shared<Quad>(Point3d(555, 555, 555), Vector3d(-555, 0, 0), Vector3d(0, 0, -555),
+                                white));
+    world.add(
+        make_shared<Quad>(Point3d(0, 0, 555), Vector3d(555, 0, 0), Vector3d(0, 555, 0), white));
+
+    shared_ptr<Hittable> box1 = box(Point3d(0, 0, 0), Point3d(165, 330, 165), white);
+    box1 = make_shared<RotateY>(box1, 15);
+    box1 = make_shared<Translate>(box1, Vector3d(265, 0, 295));
+
+    shared_ptr<Hittable> box2 = box(Point3d(0, 0, 0), Point3d(165, 165, 165), white);
+    box2 = make_shared<RotateY>(box2, -18);
+    box2 = make_shared<Translate>(box2, Vector3d(130, 0, 65));
+
+    world.add(make_shared<ConstantMedium>(box1, 0.01, Color(0, 0, 0)));
+    world.add(make_shared<ConstantMedium>(box2, 0.01, Color(1, 1, 1)));
+
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 600;
+    cam.samples_per_pixel = 200;
+    cam.max_depth = 50;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.look_from = Point3d(278, 278, -800);
+    cam.look_at = Point3d(278, 278, 0);
+    cam.v_up = Vector3d(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main(int, char**) {
     HittableList world;
     Camera cam;
-    int SCENE = 7;
+    int SCENE = 8;
 
     switch (SCENE) {
         case 1:
@@ -260,6 +303,9 @@ int main(int, char**) {
             break;
         case 7:
             cornell_box(world, cam);
+            break;
+        case 8:
+            cornell_smoke(world, cam);
             break;
     }
 

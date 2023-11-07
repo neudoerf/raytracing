@@ -30,8 +30,8 @@ public:
     static const Interval empty, universe;
 };
 
-const static Interval empty(+infinity, -infinity);
-const static Interval universe(-infinity, +infinity);
+const Interval Interval::empty = Interval(+infinity, -infinity);
+const Interval Interval::universe = Interval(-infinity, +infinity);
 
 Interval operator+(const Interval& ival, double offset) {
     return Interval(ival.min + offset, ival.max + offset);
