@@ -277,10 +277,80 @@ void cornell_smoke(HittableList& world, Camera& cam) {
     cam.defocus_angle = 0;
 }
 
+void final_scene(int image_width, int samples_per_pixel, int max_depth, HittableList& world,
+                 Camera& cam) {
+    HittableList boxes1;
+    auto ground = make_shared<Lambertian>(Color(0.48, 0.83, 0.53));
+
+    int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) {
+        for (int j = 0; j < boxes_per_side; j++) {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i * w;
+            auto z0 = -1000.0 + j * w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = random_double(1, 101);
+            auto z1 = z0 + w;
+
+            boxes1.add(box(Point3d(x0, y0, z0), Point3d(x1, y1, z1), ground));
+        }
+    }
+
+    world.add(make_shared<BvhNode>(boxes1));
+
+    auto light = make_shared<DiffuseLight>(Color(7, 7, 7));
+    world.add(
+        make_shared<Quad>(Point3d(123, 554, 147), Vector3d(300, 0, 0), Vector3d(0, 0, 265), light));
+
+    auto center1 = Point3d(400, 400, 200);
+    auto center2 = center1 + Vector3d(30, 0, 0);
+    auto sphere_material = make_shared<Lambertian>(Color(0.7, 0.3, 0.1));
+    world.add(make_shared<Sphere>(center1, center2, 50, sphere_material));
+
+    world.add(make_shared<Sphere>(Point3d(260, 150, 45), 50, make_shared<Dielectric>(1.5)));
+    world.add(make_shared<Sphere>(Point3d(0, 150, 145), 50,
+                                  make_shared<Metal>(Color(0.8, 0.8, 0.9), 1.0)));
+
+    auto boundary = make_shared<Sphere>(Point3d(360, 150, 145), 70, make_shared<Dielectric>(1.5));
+    world.add(boundary);
+    world.add(make_shared<ConstantMedium>(boundary, 0.2, Color(0.2, 0.4, 0.9)));
+    boundary = make_shared<Sphere>(Point3d(0, 0, 0), 5000, make_shared<Dielectric>(1.5));
+    world.add(make_shared<ConstantMedium>(boundary, 0.0001, Color(1, 1, 1)));
+
+    auto emat = make_shared<Lambertian>(make_shared<ImageTexture>("earthmap.jpg"));
+    world.add(make_shared<Sphere>(Point3d(400, 200, 400), 100, emat));
+    auto pertext = make_shared<NoiseTexture>(0.1);
+    world.add(make_shared<Sphere>(Point3d(220, 280, 300), 80, make_shared<Lambertian>(pertext)));
+
+    HittableList boxes2;
+    auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        boxes2.add(make_shared<Sphere>(Point3d::random(0, 165), 10, white));
+    }
+
+    world.add(make_shared<Translate>(make_shared<RotateY>(make_shared<BvhNode>(boxes2), 15),
+                                     Vector3d(-100, 270, 395)));
+
+    cam.aspect_ratio = 1.0;
+    cam.image_width = image_width;
+    cam.samples_per_pixel = samples_per_pixel;
+    cam.max_depth = max_depth;
+    cam.background = Color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.look_from = Point3d(478, 278, -600);
+    cam.look_at = Point3d(278, 278, 0);
+    cam.v_up = Vector3d(0, 1, 0);
+
+    cam.defocus_angle = 0;
+}
+
 int main(int, char**) {
     HittableList world;
     Camera cam;
-    int SCENE = 8;
+    int SCENE = 10;
 
     switch (SCENE) {
         case 1:
@@ -307,10 +377,15 @@ int main(int, char**) {
         case 8:
             cornell_smoke(world, cam);
             break;
+        case 9:
+            final_scene(800, 10000, 40, world, cam);
+            break;
+        default:
+            final_scene(400, 250, 4, world, cam);
     }
 
     int NUM_THREADS = 4;
-    int SAMPLES_PER_PIXEL = 25;
+    int SAMPLES_PER_PIXEL = cam.samples_per_pixel / NUM_THREADS;
     cam.samples_per_pixel = SAMPLES_PER_PIXEL;
     std::vector<std::future<std::vector<std::vector<Color>>>> futures(NUM_THREADS);
 
